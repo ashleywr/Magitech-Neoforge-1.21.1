@@ -48,6 +48,7 @@ SourceSet mainModule = sourceSets.named("main") {
 }.get()
 
 repositories {
+    mavenCentral()
     mavenLocal()
     maven {
         url = "https://www.cursemaven.com"
@@ -173,6 +174,11 @@ neoForge {
         }
     }
 
+    unitTest {
+        enable()
+        testedMod = mods.magitech
+    }
+
     ideSyncTask(generateModMetadata)
 }
 
@@ -185,6 +191,9 @@ configurations {
 }
 
 dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
+    testImplementation 'org.mockito:mockito-core:5.11.0'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher:1.10.2'
     implementation(libs.bundles.impl)
     implementation(libs.modonomicon) { transitive = false }
     compileOnly(libs.bundles.compile)
@@ -251,4 +260,17 @@ tasks {
     compileJava {
         options.encoding = 'UTF-8'
     }
+}
+
+tasks.named('test', Test) {
+    useJUnitPlatform()
+    maxHeapSize = '1G'
+    testLogging.showStandardStreams = true
+    systemProperty 'magitech.test.seedgenJar', providers.gradleProperty('seedgenJar').getOrElse('')
+}
+
+tasks.register('surfaceOreRegression') {
+    group = 'verification'
+    description = 'Compare surface-ore placements and random streams with the upstream scan.'
+    dependsOn test
 }
